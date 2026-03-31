@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
-const App = () => {
+const MainPage = () => {
   {
     /*
     JSX : JavaScrirt 안에서 HTML 처럼 작성하는 문법 
@@ -34,6 +35,16 @@ const App = () => {
     fetchRecipes();
   }, []); // 빈 배열은 컴포넌트가 처음 마운트될 때 한 번만 실행됨
 
+  /* (수업)
+  const [count, setCount] = useState(0);
+  const [recipes, setRecipes] = useState([]);
+
+  useEffect(() => {
+    getRecipes()
+    }[]);
+
+    ...생략
+  */
   return (
     <>
       <h3>현재 숫자 : {count}</h3>
@@ -50,6 +61,7 @@ const App = () => {
       {!loading && !error && (
         <ul>
           {recipes.map((recipe) => (
+            // key : 리액트가 각 항목을 구분할 때 사용하는 고유값 (목록 출력시)
             <li
               key={recipe.id}
               style={{ marginBottom: "20px", listStyle: "none" }}
@@ -72,4 +84,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default MainPage;
