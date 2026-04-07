@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 const MainPage = () => {
   {
@@ -15,13 +15,20 @@ const MainPage = () => {
   const [recipes, setRecipes] = useState([]); // 레시피 데이터를 저장할 새로운 상태
   const [loading, setLoading] = useState(true); // 로딩 상태
   const [error, setError] = useState(null); // 에러 상태
-  const [Keyword, setKeyword] = useState(""); // 네임
-  const [searchTerm, setSearchTerm] = useState(""); // 검색 버튼 클릭 시 저장할 검색어
+  const [searchParams, setSearchParams] = useSearchParams(); // 주소창의 쿼리 파라미터 관리
+  const searchTerm = searchParams.get("query") || ""; // 주소창에서 query 값을 가져옴
+  const [Keyword, setKeyword] = useState(searchTerm); // 입력창 상태 (초기값은 주소창의 keyword)
 
   useEffect(() => {
     const fetchRecipes = async () => {
+      setLoading(true); // 검색할 때마다 로딩 상태를 보여주기 위해 추가
       try {
-        const response = await fetch("http://localhost:4000/recipes");
+        // 검색어(searchTerm)가 있으면 주소 뒤에 ?query=검색어 를 붙입니다.
+        const url = searchTerm
+          ? `http://localhost:4000/recipes?query=${searchTerm}`
+          : "http://localhost:4000/recipes";
+
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -34,19 +41,18 @@ const MainPage = () => {
       }
     };
     fetchRecipes();
-  }, []); // 빈 배열은 컴포넌트가 처음 마운트될 때 한 번만 실행됨
+  }, [searchTerm]); // searchTerm이 변경될 때마다 useEffect가 다시 실행됨
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    // 검색 버튼 클릭 시 폼에 입력된 Keyword를 실제 검색어 상태로 설정합니다.
-    setSearchTerm(Keyword);
+    // 검색 버튼 클릭 시 주소창의 URL을 변경합니다. (예: /?query=레몬)
+    if (Keyword.trim() === "") {
+      setSearchParams({}); // 검색어가 없으면 파라미터 삭제
+    } else {
+      setSearchParams({ query: Keyword }); // 검색어가 있으면 파라미터 추가
+    }
   };
-
-  // 전체 레시피 중 이름(name)에 검색어(searchTerm)가 포함된 레시피만 필터링합니다.
-  const filteredRecipes = recipes.filter((recipe) =>
-    (recipe.name || "").toLowerCase().includes(searchTerm.toLowerCase()),
-  );
 
   return (
     <>
@@ -58,7 +64,6 @@ const MainPage = () => {
           value={Keyword}
           onChange={(event) => setKeyword(event.target.value)}
         />
-        <input type="submit" value="검색"></input>
         <button>검색</button>
       </form>
       <h3>현재 숫자 : {count}</h3>
@@ -74,11 +79,11 @@ const MainPage = () => {
       {error && <p>레시피를 불러오는데 오류가 발생했습니다: {error.message}</p>}
       {!loading && !error && (
         <>
-          {filteredRecipes.length === 0 ? (
+          {recipes.length === 0 ? (
             <p>검색 결과가 없습니다.</p>
           ) : (
             <ul>
-              {filteredRecipes.map((recipe) => (
+              {recipes.map((recipe) => (
                 // key : 리액트가 각 항목을 구분할 때 사용하는 고유값 (목록 출력시)
                 <li
                   key={recipe.id}
