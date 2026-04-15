@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import "./Header.css";
+import { useAuth } from "../Context/AuthContext";
 
 const Header = () => {
-  //localStorage에서 토큰을 꺼내서 로그인 여부 확인.
-  const token = localStorage.getItem("token");
+  const { token } = useAuth();
   console.log("🔑 현재 저장된 토큰:", token); // 콘솔창에 현재 토큰 출력
   return (
     <>
