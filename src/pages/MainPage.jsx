@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { getRecipes, deleteRecipe } from "../api/recipes";
 import "./MainPage.css"; // CSS 파일 불러오기
+import RecipeAddModal from "../components/RecipeAddModal";
 
 const MainPage = () => {
   {
@@ -21,6 +22,7 @@ const MainPage = () => {
   const [Keyword, setKeyword] = useState(searchTerm); // 입력창 상태 (초기값은 주소창의 keyword)
   const [user, setUser] = useState(null); // 로그인한 사용자 정보 상태
   const navigate = useNavigate(); // 페이지 이동을 위한 hook
+  const [isModalOpen, setIsModalOpen] = useState(false); // 모달창 열림/닫힘 상태 관리
 
   // 컴포넌트가 처음 렌더링될 때 localStorage에서 로그인 정보를 확인합니다.
   useEffect(() => {
@@ -80,7 +82,31 @@ const MainPage = () => {
     <div className="main-container">
       {/* 로그인한 사용자가 있다면 환영 메시지를 보여줍니다. */}
       {user && (
-        <h2 className="welcome-message">🎉 {user.name}님 환영합니다! 🎉</h2>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <h2 className="welcome-message" style={{ margin: 0 }}>
+            🎉 {user.name}님 환영합니다! 🎉
+          </h2>
+          <button
+            onClick={() => setIsModalOpen(true)} // 클릭 시 모달창 열기
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#6c63ff",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "bold",
+            }}
+          >
+            레시피 추가
+          </button>
+        </div>
       )}
 
       <form className="search-form" onSubmit={handleSubmit}>
@@ -151,6 +177,9 @@ const MainPage = () => {
           )}
         </>
       )}
+
+      {/* isModalOpen이 true일 때만 화면에 모달창을 렌더링합니다. */}
+      {isModalOpen && <RecipeAddModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 };

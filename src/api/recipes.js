@@ -17,11 +17,10 @@ export const addRecipe = async (recipeData) => {
   const response = await fetch(BASE_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       // 로컬 스토리지에 토큰이 있을 경우, Authorization 헤더에 담아 보냅니다.
       ...(token && { Authorization: `Bearer ${token}` }),
     },
-    body: JSON.stringify(recipeData),
+    body: recipeData, // FormData 객체를 그대로 전송합니다. Content-Type은 브라우저가 자동 설정합니다.
   });
   return response;
 };

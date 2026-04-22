@@ -109,9 +109,9 @@ const LoginPage = () => {
       // 서버에 로그인 요청을 보냅니다.
       const response = await loginApi(form);
       const data = await response.json();
-      login(data); // 로그인 성공 시 context의 login 함수를 호출하여 상태 업데이트
 
       if (response.ok) {
+        login(data); // 로그인 성공 시 context의 login 함수를 호출하여 상태 업데이트
         alert("로그인에 성공했습니다.");
 
         console.log("🔑 발급된 토큰:", data.token); // 콘솔창에 토큰 출력

@@ -6,6 +6,7 @@ import MainPage from "./pages/MainPage";
 import SignupPage from "./pages/SignupPage";
 import RecipeDetailPage from "./pages/RecipeDetailPage";
 import MyPage from "./pages/MyPage";
+import OldRecipeDetailPage from "./pages/old_RecipeDetailPage";
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
       {
         path: "/recipes/:id",
         element: <RecipeDetailPage />,
+      },
+      {
+        path: "/old-recipes/:id",
+        element: <OldRecipeDetailPage />,
       },
     ],
   },
