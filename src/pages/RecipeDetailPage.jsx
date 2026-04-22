@@ -1,18 +1,25 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getRecipeById } from "../api/recipes";
+import { useParams, useNavigate } from "react-router-dom";
+import { getRecipeById, toggleLike } from "../api/recipes";
 import "./RecipeDetailPage.css";
 
 const RecipeDetailPage = () => {
   const { id } = useParams(); // URL 주소에 있는 id 값을 가져옵니다.
+  const navigate = useNavigate();
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [likeCount, setLikeCount] = useState(0); // 좋아요 수 상태
+
+  // 로그인한 사용자 정보 가져오기
+  const savedUser = localStorage.getItem("user");
+  const user = savedUser ? JSON.parse(savedUser) : null;
 
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
         const data = await getRecipeById(id);
         setRecipe(data);
+        setLikeCount(data.like_count || 0); // 서버에서 받은 좋아요 수 저장
       } catch (error) {
         console.error("레시피를 불러오는데 실패했습니다.", error);
       } finally {
@@ -21,6 +28,29 @@ const RecipeDetailPage = () => {
     };
     fetchRecipe();
   }, [id]);
+
+  // 좋아요 버튼 클릭 핸들러
+  const handleLike = async () => {
+    if (!user) {
+      alert("로그인이 필요한 기능입니다.");
+      navigate("/login");
+      return;
+    }
+    try {
+      const response = await toggleLike(id, user.id);
+      const data = await response.json();
+      if (response.ok) {
+        if (data.isLiked) {
+          setLikeCount((prev) => prev + 1);
+        } else {
+          setLikeCount((prev) => prev - 1);
+        }
+      }
+    } catch (error) {
+      console.error("좋아요 처리 중 오류 발생:", error);
+      alert("좋아요 처리 중 오류가 발생했습니다.");
+    }
+  };
 
   // 로딩 중이거나 데이터가 없을 때의 화면
   if (loading) {
@@ -58,8 +88,43 @@ const RecipeDetailPage = () => {
       {recipe.image && <img src={recipe.image} alt={recipe.name} />}
 
       {/* 레시피 제목과 설명 */}
-      <h2>{recipe.name}</h2>
-      <p style={{ fontSize: "14px", color: "#888", marginBottom: "15px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: "20px",
+        }}
+      >
+        <h2 style={{ margin: 0 }}>{recipe.name}</h2>
+
+        {/* 좋아요 버튼 추가 */}
+        <button
+          onClick={handleLike}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+            padding: "8px 16px",
+            backgroundColor: "#fff",
+            border: "1px solid #ff6b81",
+            borderRadius: "20px",
+            color: "#ff6b81",
+            fontWeight: "bold",
+            cursor: "pointer",
+            transition: "all 0.2s",
+          }}
+          onMouseOver={(e) =>
+            (e.currentTarget.style.backgroundColor = "#fff0f2")
+          }
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#fff")}
+        >
+          <span style={{ fontSize: "18px" }}>❤️</span>
+          <span>{likeCount}</span>
+        </button>
+      </div>
+
+      <p style={{ fontSize: "14px", color: "#888", margin: "10px 0 15px 0" }}>
         작성자: {recipe.author_name || "알 수 없음"}
       </p>
       <p>{recipe.description}</p>
