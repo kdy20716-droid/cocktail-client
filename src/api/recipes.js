@@ -1,8 +1,11 @@
 const BASE_URL = "http://localhost:4000/recipes";
 
 // 레시피 목록 조회 API
-export const getRecipes = async (searchTerm) => {
-  const url = searchTerm ? `${BASE_URL}?query=${searchTerm}` : BASE_URL;
+export const getRecipes = async (searchTerm, sortOption = "latest_desc") => {
+  const params = new URLSearchParams();
+  if (searchTerm) params.append("query", searchTerm);
+  if (sortOption) params.append("sort", sortOption);
+  const url = `${BASE_URL}?${params.toString()}`;
 
   const response = await fetch(url);
   if (!response.ok) {
