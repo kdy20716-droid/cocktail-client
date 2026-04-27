@@ -1,28 +1,125 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login as apiLogin } from "../api/users"; // login 함수 이름 충돌을 피하기 위해 이름 변경
-import { useAuth } from "../context/AuthContext"; // AuthContext에서 useAuth hook 가져오기 (직접 생성 필요)
-import "./LoginPage.css"; // CSS 파일 불러오기
+import { login as loginApi } from "../api/users";
+import { toast } from "sonner";
+import { useAuth } from "../Context/AuthContext";
+import styled from "styled-components";
+
+const LoginContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+
+  .login-box {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .login-title {
+    text-align: center;
+    margin-bottom: 32px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+  }
+
+  .form-group input {
+    padding: 10px 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus {
+    border-color: #6c63ff;
+  }
+
+  .login-button {
+    margin-top: 8px;
+    padding: 12px;
+    background-color: #6c63ff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .login-button:hover {
+    background-color: #574fd6;
+  }
+
+  .login-footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .login-footer a {
+    color: #6c63ff;
+    font-weight: 500;
+  }
+
+  .login-footer a:hover {
+    text-decoration: underline;
+  }
+`;
 
 const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+  // AuthContsxt에서 login 함수를 가져옵니다.
+  const { login } = useAuth();
   const navigate = useNavigate();
-  const { login } = useAuth(); // AuthContext의 login 함수 사용
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
     try {
-      const response = await apiLogin({ email, password });
+      // 서버에 로그인 요청을 보냅니다.
+      const response = await loginApi(form);
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
-        // 1. AuthContext를 통해 로그인 상태를 전역으로 업데이트합니다.
-        login(data.user);
-        alert(`${data.user.name}님 환영합니다!`);
-        // 이제 navigate를 사용해도 Context의 영향으로 상단 메뉴바가 정상적으로 업데이트됩니다.
-        navigate("/");
+        login(data); // 로그인 성공 시 context의 login 함수를 호출하여 상태 업데이트
+        alert("로그인에 성공했습니다.");
+
+        console.log("🔑 발급된 토큰:", data.token); // 콘솔창에 토큰 출력
+
+        localStorage.setItem("user", JSON.stringify(data.user)); // 로컬 스토리지에 사용자 정보 저장
+        localStorage.setItem("token", data.token); // 발급받은 토큰도 로컬 스토리지에 함께 저장 (추후 API 인증에 사용)
+        navigate("/"); // 전체 새로고침 없이 메인 페이지로 이동 (콘솔창 로그 유지)
       } else {
-        const data = await response.json();
         alert(`로그인 실패: ${data.message}`);
       }
     } catch (error) {
@@ -32,31 +129,45 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="login-container">
-      <h2>로그인</h2>
-      <form className="login-form" onSubmit={handleSubmit}>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="이메일 입력"
-          required
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="비밀번호 입력"
-          required
-        />
-        <button className="login-button" type="submit">
-          로그인
-        </button>
-      </form>
-      <p style={{ marginTop: "20px" }}>
-        계정이 없으신가요? <Link to="/signup">회원가입하기</Link>
-      </p>
-    </div>
+    <LoginContainer>
+      <div className="login-container">
+        <div className="login-box">
+          <h1 className="login-title">로그인</h1>
+          <form className="login-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="email">이메일</label>
+              <input
+                id="email"
+                type="email"
+                placeholder="이메일을 입력하세요"
+                value={form.email}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, email: event.target.value }))
+                }
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="password">비밀번호</label>
+              <input
+                id="password"
+                type="password"
+                placeholder="비밀번호를 입력하세요"
+                value={form.password}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, password: event.target.value }))
+                }
+              />
+            </div>
+            <button type="submit" className="login-button">
+              로그인
+            </button>
+          </form>
+          <p className="login-footer">
+            아직 계정이 없으신가요? <Link to="/signup">회원가입</Link>
+          </p>
+        </div>
+      </div>
+    </LoginContainer>
   );
 };
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { getRecipes, deleteRecipe } from "../api/recipes";
 import "./MainPage.css"; // CSS 파일 불러오기
+import RecipeAddModal from "../components/RecipeAddModal";
 
 const MainPage = () => {
   {
@@ -21,6 +22,8 @@ const MainPage = () => {
   const [Keyword, setKeyword] = useState(searchTerm); // 입력창 상태 (초기값은 주소창의 keyword)
   const [user, setUser] = useState(null); // 로그인한 사용자 정보 상태
   const navigate = useNavigate(); // 페이지 이동을 위한 hook
+  const [isModalOpen, setIsModalOpen] = useState(false); // 모달창 열림/닫힘 상태 관리
+  const [sortOption, setSortOption] = useState("latest_desc"); // 정렬 상태
 
   // 컴포넌트가 처음 렌더링될 때 localStorage에서 로그인 정보를 확인합니다.
   useEffect(() => {
@@ -34,7 +37,7 @@ const MainPage = () => {
     const fetchRecipes = async () => {
       setLoading(true); // 검색할 때마다 로딩 상태를 보여주기 위해 추가
       try {
-        const data = await getRecipes(searchTerm);
+        const data = await getRecipes(searchTerm, sortOption);
         setRecipes(data);
       } catch (e) {
         setError(e);
@@ -43,7 +46,7 @@ const MainPage = () => {
       }
     };
     fetchRecipes();
-  }, [searchTerm]); // searchTerm이 변경될 때마다 useEffect가 다시 실행됨
+  }, [searchTerm, sortOption]); // 검색어나 정렬 조건이 변경될 때마다 실행됨
 
   const handleDelete = async (id) => {
     if (window.confirm("정말로 이 레시피를 삭제하시겠습니까?")) {
@@ -78,24 +81,63 @@ const MainPage = () => {
 
   return (
     <div className="main-container">
-      {/* 로그인한 사용자가 있다면 환영 메시지를 보여줍니다. */}
-      {user && (
-        <h2 className="welcome-message">🎉 {user.name}님 환영합니다! 🎉</h2>
-      )}
+      {/* 1. 상단 환영 메시지 영역 */}
+      <div className="main-header-section">
+        {user ? (
+          <h2 className="welcome-title">
+            🎉 {user.name}님, 어떤 칵테일을 찾아볼까요?
+          </h2>
+        ) : (
+          <h2 className="welcome-title">
+            🍸 다양한 칵테일 레시피를 만나보세요!
+          </h2>
+        )}
+      </div>
 
-      <form className="search-form" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="keyword"
-          placeholder="검색어를 입력하세요"
-          value={Keyword}
-          onChange={(event) => setKeyword(event.target.value)}
-        />
-        <button>검색</button>
-      </form>
+      {/* 2. 컨트롤 바 영역 (검색, 정렬, 추가 버튼을 하나의 박스로 깔끔하게 그룹화) */}
+      <div className="controls-container">
+        <form className="search-form" onSubmit={handleSubmit}>
+          {/* 왼쪽: 검색창 */}
+          <div className="search-wrapper">
+            <input
+              type="text"
+              name="keyword"
+              placeholder="원하는 레시피 검색..."
+              value={Keyword}
+              onChange={(event) => setKeyword(event.target.value)}
+            />
+            <button className="search-btn" type="submit">
+              검색
+            </button>
+          </div>
 
-      {/* 레시피 데이터 표시 (선택 사항) */}
-      <h2 className="section-title">칵테일 레시피</h2>
+          {/* 오른쪽: 정렬 옵션 및 레시피 추가 버튼 */}
+          <div className="action-wrapper">
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="sort-select"
+            >
+              <option value="latest_desc">최신순 (내림차순)</option>
+              <option value="latest_asc">최신순 (오름차순)</option>
+              <option value="popular">인기순 (좋아요 많은 순)</option>
+              <option value="name_asc">이름순 (ㄱ~ㅎ)</option>
+              <option value="name_desc">이름순 (ㅎ~ㄱ)</option>
+            </select>
+
+            {user && (
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(true)}
+                className="add-recipe-btn"
+              >
+                + 레시피 추가
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
       {loading && <p>레시피를 불러오는 중...</p>}
       {error && <p>레시피를 불러오는데 오류가 발생했습니다: {error.message}</p>}
       {!loading && !error && (
@@ -131,6 +173,16 @@ const MainPage = () => {
                     >
                       작성자: {recipe.author_name || "알 수 없음"}
                     </p>
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        color: "#e84393",
+                        fontWeight: "bold",
+                        margin: "0 0 10px 0",
+                      }}
+                    >
+                      ❤️ 좋아요 {recipe.like_count || 0}
+                    </p>
                     <p>{recipe.description}</p>
                     {/* 현재 로그인한 사용자의 이메일이 관리자 이메일일 때만 삭제 버튼 표시 */}
                     {user && user.email === "admin@cocktail.com" && (
@@ -151,6 +203,9 @@ const MainPage = () => {
           )}
         </>
       )}
+
+      {/* isModalOpen이 true일 때만 화면에 모달창을 렌더링합니다. */}
+      {isModalOpen && <RecipeAddModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 };

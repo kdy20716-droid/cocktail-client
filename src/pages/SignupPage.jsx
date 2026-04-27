@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signup } from "../api/users";
 import "./SignupPage.css"; // CSS 파일 불러오기
+import { toast } from "sonner";
 
 const SignupPage = () => {
   const [name, setName] = useState("");
@@ -14,15 +15,15 @@ const SignupPage = () => {
     try {
       const response = await signup({ name, email, password });
       if (response.ok) {
-        alert("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
+        toast.success("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
         navigate("/login");
       } else {
         const data = await response.json();
-        alert(`회원가입 실패: ${data.message}`);
+        toast.error(`회원가입 실패: ${data.message}`);
       }
     } catch (error) {
       console.error("회원가입 중 오류 발생:", error);
-      alert("서버와 통신 중 오류가 발생했습니다.");
+      toast.error("서버와 통신 중 오류가 발생했습니다.");
     }
   };
 

@@ -1,8 +1,11 @@
 const BASE_URL = "http://localhost:4000/recipes";
 
 // 레시피 목록 조회 API
-export const getRecipes = async (searchTerm) => {
-  const url = searchTerm ? `${BASE_URL}?query=${searchTerm}` : BASE_URL;
+export const getRecipes = async (searchTerm, sortOption = "latest_desc") => {
+  const params = new URLSearchParams();
+  if (searchTerm) params.append("query", searchTerm);
+  if (sortOption) params.append("sort", sortOption);
+  const url = `${BASE_URL}?${params.toString()}`;
 
   const response = await fetch(url);
   if (!response.ok) {
@@ -13,20 +16,15 @@ export const getRecipes = async (searchTerm) => {
 
 // 레시피 추가 API
 export const addRecipe = async (recipeData) => {
-  const isFormData = recipeData instanceof FormData;
-
-  const options = {
+  const token = localStorage.getItem("token");
+  const response = await fetch(BASE_URL, {
     method: "POST",
-  };
-
-  if (isFormData) {
-    options.body = recipeData; // FormData인 경우 Content-Type을 자동 설정하도록 생략하고 그대로 전달
-  } else {
-    options.headers = { "Content-Type": "application/json" };
-    options.body = JSON.stringify(recipeData); // JSON인 경우
-  }
-
-  const response = await fetch(BASE_URL, options);
+    headers: {
+      // 로컬 스토리지에 토큰이 있을 경우, Authorization 헤더에 담아 보냅니다.
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: recipeData, // FormData 객체를 그대로 전송합니다. Content-Type은 브라우저가 자동 설정합니다.
+  });
   return response;
 };
 

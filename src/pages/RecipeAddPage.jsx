@@ -1,44 +1,87 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { addRecipe } from "../api/recipes";
-import { useAuth } from "../context/AuthContext"; // AuthContext에서 useAuth hook 가져오기 (직접 생성 필요)
 import "./RecipeAddPage.css";
 
 const RecipeAddPage = () => {
   // 입력창에 들어가는 값들은 state로 관리
   const [name, setName] = useState("");
-  const [image, setImage] = useState("");
+  const [image, setImage] = useState(null); // 파일 객체를 저장하도록 변경
   const [description, setDescription] = useState("");
+  const [ingredients, setIngredients] = useState([{ name: "", amount: "" }]); // 재료 상태 관리
+  const [directions, setDirections] = useState([""]); // 단계별 레시피 상태 관리
   const navigate = useNavigate();
-  const { user } = useAuth(); // AuthContext에서 user 정보 가져오기
+
+  // 재료 입력값 변경 핸들러
+  const handleIngredientChange = (index, field, value) => {
+    const newIngredients = [...ingredients];
+    newIngredients[index][field] = value;
+    setIngredients(newIngredients);
+  };
+
+  // 재료 입력칸 추가 핸들러
+  const handleAddIngredient = () => {
+    setIngredients([...ingredients, { name: "", amount: "" }]);
+  };
+
+  // 재료 입력칸 삭제 핸들러
+  const handleRemoveIngredient = (index) => {
+    const newIngredients = ingredients.filter((_, i) => i !== index);
+    setIngredients(newIngredients);
+  };
+
+  // 레시피 단계 입력값 변경 핸들러
+  const handleDirectionChange = (index, value) => {
+    const newDirections = [...directions];
+    newDirections[index] = value;
+    setDirections(newDirections);
+  };
+
+  // 레시피 단계 입력칸 추가 핸들러
+  const handleAddDirection = () => {
+    setDirections([...directions, ""]);
+  };
+
+  // 레시피 단계 입력칸 삭제 핸들러
+  const handleRemoveDirection = (index) => {
+    const newDirections = directions.filter((_, i) => i !== index);
+    setDirections(newDirections);
+  };
 
   // 컴포넌트가 처음 화면에 나타날 때 로그인 상태를 확인합니다.
   useEffect(() => {
-    // 이 로직은 라우터에서 <ProtectedRoute>를 구현하면 더 깔끔하게 관리할 수 있습니다.
-    if (!user) {
+    const savedUser = localStorage.getItem("user");
+    if (!savedUser) {
       alert("로그인이 필요한 기능입니다. 로그인 페이지로 이동합니다.");
       navigate("/login");
     }
-  }, [user, navigate]);
+  }, [navigate]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // 1. useAuth() hook으로 이미 user 정보를 가지고 있으므로, 바로 사용합니다.
-    if (!user) {
-      alert("세션이 만료되었거나 로그인이 필요합니다.");
+    // 1. localStorage에서 로그인한 사용자 정보를 가져옵니다.
+    const savedUser = localStorage.getItem("user");
+    if (!savedUser) {
+      alert("로그인이 필요한 기능입니다.");
       navigate("/login");
       return;
     }
+    const user = JSON.parse(savedUser);
 
     try {
-      // 2. 서버로 보낼 데이터에 user_id를 포함시킵니다.
-      const response = await addRecipe({
-        user_id: user.id,
-        name,
-        image,
-        description,
-      });
+      // 2. 이미지를 포함한 폼 데이터를 만들기 위해 FormData 사용
+      const formData = new FormData();
+      formData.append("user_id", user.id);
+      formData.append("name", name);
+      formData.append("description", description);
+      if (image) {
+        formData.append("image", image); // 파일 추가
+      }
+      formData.append("ingredients", JSON.stringify(ingredients));
+      formData.append("directions", JSON.stringify(directions));
+
+      const response = await addRecipe(formData);
       if (response.ok) {
         alert("레시피가 추가되었습니다.");
         navigate("/"); // 성공 시 메인 페이지로 이동
@@ -62,11 +105,9 @@ const RecipeAddPage = () => {
           required
         />
         <input
-          type="text"
-          value={image}
-          onChange={(event) => setImage(event.target.value)}
-          placeholder="레시피 이미지 URL 입력"
-          required
+          type="file"
+          accept="image/*"
+          onChange={(event) => setImage(event.target.files[0])} // 선택한 파일 객체 저장
         />
         <textarea
           value={description}
@@ -74,6 +115,149 @@ const RecipeAddPage = () => {
           placeholder="레시피 설명 입력"
           required
         />
+
+        <div style={{ width: "100%", marginBottom: "20px", textAlign: "left" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "10px",
+            }}
+          >
+            <label style={{ fontWeight: "bold", color: "#444" }}>재료</label>
+            <button
+              type="button"
+              onClick={handleAddIngredient}
+              style={{
+                padding: "6px 12px",
+                backgroundColor: "#f0f0f0",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontWeight: "bold",
+                fontSize: "14px",
+              }}
+            >
+              + 재료 추가
+            </button>
+          </div>
+          {ingredients.map((ingredient, index) => (
+            <div
+              key={index}
+              style={{ display: "flex", gap: "10px", marginBottom: "10px" }}
+            >
+              <input
+                type="text"
+                value={ingredient.name}
+                onChange={(e) =>
+                  handleIngredientChange(index, "name", e.target.value)
+                }
+                placeholder="재료명 (예: 레몬즙)"
+                style={{ flex: 2, marginBottom: 0 }}
+                required
+              />
+              <input
+                type="text"
+                value={ingredient.amount}
+                onChange={(e) =>
+                  handleIngredientChange(index, "amount", e.target.value)
+                }
+                placeholder="용량 (예: 15ml)"
+                style={{ flex: 1, marginBottom: 0 }}
+                required
+              />
+              {ingredients.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveIngredient(index)}
+                  style={{
+                    padding: "0 10px",
+                    background: "none",
+                    border: "none",
+                    color: "#ff4d4f",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ width: "100%", marginBottom: "20px", textAlign: "left" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "10px",
+            }}
+          >
+            <label style={{ fontWeight: "bold", color: "#444" }}>
+              만드는 방법
+            </label>
+            <button
+              type="button"
+              onClick={handleAddDirection}
+              style={{
+                padding: "6px 12px",
+                backgroundColor: "#f0f0f0",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontWeight: "bold",
+                fontSize: "14px",
+              }}
+            >
+              + 단계 추가
+            </button>
+          </div>
+          {directions.map((direction, index) => (
+            <div
+              key={index}
+              style={{
+                display: "flex",
+                gap: "10px",
+                marginBottom: "10px",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{ fontWeight: "bold", color: "#666", minWidth: "20px" }}
+              >
+                {index + 1}.
+              </span>
+              <input
+                type="text"
+                value={direction}
+                onChange={(e) => handleDirectionChange(index, e.target.value)}
+                placeholder={`단계 ${index + 1} 설명`}
+                style={{ flex: 1, marginBottom: 0 }}
+                required
+              />
+              {directions.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveDirection(index)}
+                  style={{
+                    padding: "0 10px",
+                    background: "none",
+                    border: "none",
+                    color: "#ff4d4f",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
         <button className="recipe-add-button" type="submit">
           레시피 추가
         </button>

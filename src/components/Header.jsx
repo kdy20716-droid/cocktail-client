@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import "./Header.css";
+import { useAuth } from "../Context/AuthContext";
 
 const Header = () => {
+  const { token } = useAuth();
+  console.log("🔑 현재 저장된 토큰:", token); // 콘솔창에 현재 토큰 출력
   return (
     <>
       <header className="site-header">

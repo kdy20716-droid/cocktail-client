@@ -4,42 +4,125 @@
   padding: 20px;
 }
 
-.welcome-message,
 .section-title {
   text-align: center;
   color: #333;
   margin-bottom: 30px;
 }
 
+/* --- 상단 환영 메시지 --- */
+.main-header-section {
+  text-align: center;
+  margin-bottom: 30px;
+  margin-top: 10px;
+}
+
+.welcome-title {
+  font-size: 28px;
+  color: #2c3e50;
+  margin: 0;
+  font-weight: 700;
+}
+
+/* --- 컨트롤 바 (검색, 정렬, 추가) --- */
+.controls-container {
+  background-color: #f8f9fa;
+  padding: 20px 30px;
+  border-radius: 16px;
+  margin-bottom: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
 .search-form {
   display: flex;
-  justify-content: center;
-  margin-bottom: 40px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin: 0;
+}
+
+/* 검색 영역 */
+.search-wrapper {
+  display: flex;
   gap: 10px;
+  flex: 1;
+  min-width: 300px;
 }
 
-.search-form input {
-  width: 300px;
+.search-wrapper input {
+  flex: 1;
+  max-width: 400px;
   padding: 12px 20px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   border-radius: 25px;
-  font-size: 16px;
+  font-size: 15px;
   outline: none;
+  transition: border-color 0.2s;
 }
 
-.search-form button {
-  padding: 10px 25px;
-  background-color: #007bff;
+.search-wrapper input:focus {
+  border-color: #6c63ff;
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+}
+
+.search-btn {
+  padding: 10px 24px;
+  background-color: #3b3b3b;
   color: white;
   border: none;
   border-radius: 25px;
   cursor: pointer;
   font-weight: bold;
+  font-size: 15px;
   transition: background-color 0.2s;
 }
 
-.search-form button:hover {
-  background-color: #0056b3;
+.search-btn:hover {
+  background-color: #222;
+}
+
+/* 정렬 및 액션 영역 */
+.action-wrapper {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.sort-select {
+  padding: 11px 18px;
+  border-radius: 25px;
+  border: 1px solid #ddd;
+  outline: none;
+  cursor: pointer;
+  font-size: 14px;
+  background-color: white;
+  color: #444;
+  font-weight: 500;
+  transition: border-color 0.2s;
+}
+
+.sort-select:hover {
+  border-color: #aaa;
+}
+
+.add-recipe-btn {
+  padding: 11px 22px;
+  background-color: #6c63ff;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+}
+
+.add-recipe-btn:hover {
+  background-color: #574fd6;
+  transform: translateY(-2px);
 }
 
 .recipe-list {
