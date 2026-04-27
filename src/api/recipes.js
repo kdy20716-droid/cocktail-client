@@ -13,13 +13,20 @@ export const getRecipes = async (searchTerm) => {
 
 // 레시피 추가 API
 export const addRecipe = async (recipeData) => {
-  const response = await fetch(BASE_URL, {
+  const isFormData = recipeData instanceof FormData;
+
+  const options = {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(recipeData),
-  });
+  };
+
+  if (isFormData) {
+    options.body = recipeData; // FormData인 경우 Content-Type을 자동 설정하도록 생략하고 그대로 전달
+  } else {
+    options.headers = { "Content-Type": "application/json" };
+    options.body = JSON.stringify(recipeData); // JSON인 경우
+  }
+
+  const response = await fetch(BASE_URL, options);
   return response;
 };
 
