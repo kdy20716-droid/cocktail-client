@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { addRecipe } from "../api/recipes";
+import { useAuth } from "../context/AuthContext"; // AuthContext에서 useAuth hook 가져오기 (직접 생성 필요)
 import "./RecipeAddPage.css";
 
 const RecipeAddPage = () => {
@@ -9,27 +10,26 @@ const RecipeAddPage = () => {
   const [image, setImage] = useState("");
   const [description, setDescription] = useState("");
   const navigate = useNavigate();
+  const { user } = useAuth(); // AuthContext에서 user 정보 가져오기
 
   // 컴포넌트가 처음 화면에 나타날 때 로그인 상태를 확인합니다.
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    if (!savedUser) {
+    // 이 로직은 라우터에서 <ProtectedRoute>를 구현하면 더 깔끔하게 관리할 수 있습니다.
+    if (!user) {
       alert("로그인이 필요한 기능입니다. 로그인 페이지로 이동합니다.");
       navigate("/login");
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // 1. localStorage에서 로그인한 사용자 정보를 가져옵니다.
-    const savedUser = localStorage.getItem("user");
-    if (!savedUser) {
-      alert("로그인이 필요한 기능입니다.");
+    // 1. useAuth() hook으로 이미 user 정보를 가지고 있으므로, 바로 사용합니다.
+    if (!user) {
+      alert("세션이 만료되었거나 로그인이 필요합니다.");
       navigate("/login");
       return;
     }
-    const user = JSON.parse(savedUser);
 
     try {
       // 2. 서버로 보낼 데이터에 user_id를 포함시킵니다.
