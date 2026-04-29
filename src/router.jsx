@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import RecipeAddPage from "./pages/RecipeAddPage";
+import RecipeEditPage from "./pages/RecipeEditPage";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
 import MainPage from "./pages/MainPage";
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
       {
         path: "/recipes/:id",
         element: <RecipeDetailPage />,
+      },
+      {
+        path: "/recipes/:id/edit",
+        element: <RecipeEditPage />,
       },
       {
         path: "/old-recipes/:id",

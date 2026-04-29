@@ -1,16 +1,22 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext";
 
 const Layout = () => {
+  const { token, logout } = useAuth();
+  const navigate = useNavigate();
+
   // 1. localStorage에서 로그인한 사용자 정보를 확인합니다.
   const savedUser = localStorage.getItem("user");
-  const user = savedUser ? JSON.parse(savedUser) : null;
+  // 토큰이 존재할 때만 user 정보를 파싱하여 로그인 상태를 확정합니다.
+  const user = token && savedUser ? JSON.parse(savedUser) : null;
 
   // 2. 로그아웃 처리 함수
   const handleLogout = () => {
     if (window.confirm("로그아웃 하시겠습니까?")) {
+      logout(); // 전역 상태 초기화
       localStorage.removeItem("user"); // 브라우저에서 사용자 정보 삭제
       alert("로그아웃 되었습니다.");
-      window.location.href = "/"; // 메인 페이지로 이동하면서 새로고침
+      navigate("/"); // 메인 페이지로 이동
     }
   };
 

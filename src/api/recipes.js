@@ -28,6 +28,19 @@ export const addRecipe = async (recipeData) => {
   return response;
 };
 
+// 레시피 수정 API
+export const updateRecipe = async (id, recipeData) => {
+  const token = localStorage.getItem("token");
+  const response = await fetch(`${BASE_URL}/${id}`, {
+    method: "PUT",
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: recipeData,
+  });
+  return response;
+};
+
 // 특정 사용자의 레시피 목록 조회 API
 export const getRecipesByUserId = async (userId) => {
   const response = await fetch(`${BASE_URL}/user/${userId}`);

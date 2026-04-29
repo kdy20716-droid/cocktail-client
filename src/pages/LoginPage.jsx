@@ -111,13 +111,15 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        login(data); // 로그인 성공 시 context의 login 함수를 호출하여 상태 업데이트
+        // 로컬 스토리지에 사용자 정보 먼저 저장하여 Layout 컴포넌트가 다시 렌더링될 때 값을 올바르게 가져올 수 있도록 함
+        localStorage.setItem("user", JSON.stringify(data.user)); 
+        localStorage.setItem("token", data.token); 
+
+        login(data); // 로그인 성공 시 context의 login 함수를 호출하여 상태 업데이트 (Layout 리렌더링 트리거)
         alert("로그인에 성공했습니다.");
 
         console.log("🔑 발급된 토큰:", data.token); // 콘솔창에 토큰 출력
 
-        localStorage.setItem("user", JSON.stringify(data.user)); // 로컬 스토리지에 사용자 정보 저장
-        localStorage.setItem("token", data.token); // 발급받은 토큰도 로컬 스토리지에 함께 저장 (추후 API 인증에 사용)
         navigate("/"); // 전체 새로고침 없이 메인 페이지로 이동 (콘솔창 로그 유지)
       } else {
         alert(`로그인 실패: ${data.message}`);

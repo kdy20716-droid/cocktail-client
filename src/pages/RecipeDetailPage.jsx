@@ -98,9 +98,30 @@ const RecipeDetailPage = () => {
       >
         <h2 style={{ margin: 0 }}>{recipe.name}</h2>
 
-        {/* 좋아요 버튼 추가 */}
-        <button
-          onClick={handleLike}
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          {/* 수정 버튼 (작성자 또는 관리자만 표시) */}
+          {user && (user.email === "admin@cocktail.com" || user.id === recipe.user_id) && (
+            <button
+              onClick={() => navigate(`/recipes/${id}/edit`)}
+              style={{
+                padding: "8px 16px",
+                backgroundColor: "#f0f0f0",
+                border: "1px solid #ddd",
+                borderRadius: "20px",
+                color: "#333",
+                fontWeight: "bold",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#e0e0e0")}
+              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#f0f0f0")}
+            >
+              수정
+            </button>
+          )}
+          {/* 좋아요 버튼 추가 */}
+          <button
+            onClick={handleLike}
           style={{
             display: "flex",
             alignItems: "center",
@@ -122,6 +143,7 @@ const RecipeDetailPage = () => {
           <span style={{ fontSize: "18px" }}>❤️</span>
           <span>{likeCount}</span>
         </button>
+        </div>
       </div>
 
       <p style={{ fontSize: "14px", color: "#888", margin: "10px 0 15px 0" }}>
